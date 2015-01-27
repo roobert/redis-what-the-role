@@ -12,5 +12,5 @@ usage:
 ./redis-what-the-role.rb
 
 # client
-curl localhost:6780
+curl localhost:6380
 ```
