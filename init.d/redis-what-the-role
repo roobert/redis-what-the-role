@@ -18,7 +18,7 @@ PIDFILE=/var/run/redis-what-the-role.pid
 
 test -x $DAEMON || exit 5
 
-RUNASUSER=robw
+RUNASUSER=brandwatch
 UGID=$(getent passwd $RUNASUSER | cut -f 3,4 -d:) || true
 
 case $1 in
