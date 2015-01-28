@@ -57,7 +57,7 @@ case $1 in
 
         PID=$(cat $PIDFILE)
 
-        kill -2 $PID && sleep 2 && kill -0 $PID && kill -9 $PID
+        kill -2 $PID && sleep 2 && kill -0 $PID 2> /dev/null && kill -9 $PID; true
 
 		log_end_msg $?
 		rm -f $PIDFILE
