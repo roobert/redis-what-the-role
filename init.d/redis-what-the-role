@@ -18,24 +18,47 @@ PIDFILE=/var/run/redis-what-the-role.pid
 
 test -x $DAEMON || exit 5
 
-RUNASUSER=root
+RUNASUSER=robw
+UGID=$(getent passwd $RUNASUSER | cut -f 3,4 -d:) || true
 
 case $1 in
 	start)
 		log_daemon_msg "Starting redis-what-the-role server" "redis-what-the-role"
+
 		if [ -z "$UGID" ]; then
 			log_failure_msg "user \"$RUNASUSER\" does not exist"
 			exit 1
 		fi
 
-  		start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE --startas $DAEMON -- -p $PIDFILE
+  		start-stop-daemon --start --background --oknodo --chuid $UGID --pidfile $PIDFILE --startas $DAEMON
+
 		status=$?
 
+        PID=$(ps axu | grep -v grep | grep "ruby $DAEMON" | awk '{ print $2 }')
+
+        if [ $? != 0 ]; then
+            log_failure_msg "can't establish PID of process: $DAEMON"
+            exit 1
+        fi
+
+        if [ ! -z "$PID" ]; then
+            echo $PID > $PIDFILE
+        fi
+        
 		log_end_msg $status
   		;;
 	stop)
 		log_daemon_msg "Stopping redis-what-the-role server" "redis-what-the-role"
-  		start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
+
+        if [ ! -f $PIDFILE ]; then
+            log_failure_msg "can't find PID file: $PIDFILE"
+            exit 1
+        fi
+
+        PID=$(cat $PIDFILE)
+
+        kill -2 $PID && sleep 2 && kill -0 $PID && kill -9 $PID
+
 		log_end_msg $?
 		rm -f $PIDFILE
   		;;
